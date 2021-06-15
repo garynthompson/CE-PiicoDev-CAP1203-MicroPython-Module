@@ -1,6 +1,5 @@
 # PiicoDev VEML6030 minimal example code
-# This program reads light data from the PiicoDev VEML6040 ambient light sensor
-# and displays the result
+# This program reads touch data from the PiicoDev CAP1203 capacitive touch sensor and displays the result
 
 import sys
 from PiicoDev_CAP1203 import PiicoDev_CAP1203
