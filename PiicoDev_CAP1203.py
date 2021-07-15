@@ -28,17 +28,14 @@ _PROD_ID_VALUE = b'\x6D'
 
 class PiicoDev_CAP1203(object):
     
-    def __init__(self, bus=0, freq=None, sda=None, scl=None, addr=int.from_bytes(_CAP1203Address,"big"), touchmode = "single", sensitivity = 6):
-        i2c = PiicoDev_Unified_I2C(bus=bus, freq=freq, sda=sda, scl=scl)
-        self.i2c = i2c
+    def __init__(self, bus=None, freq=None, sda=None, scl=None, addr=int.from_bytes(_CAP1203Address,"big"), touchmode = "single", sensitivity = 6):
+        self.i2c = create_unified_i2c(bus=bus, freq=freq, sda=sda, scl=scl)
         self.addr = addr
-        #print(self.addr)
         
         for i in range(0,1):
             sleep_ms(1000)
             try:
                 product_ID_value = self.i2c.readfrom_mem(self.addr, int.from_bytes(_PRODUCT_ID,"big"), 1) 
-                # print("P" + str(product_ID_value))
                 # to initialise the device
                 if (product_ID_value == _PROD_ID_VALUE):
                     print("product ID match")
@@ -50,7 +47,6 @@ class PiicoDev_CAP1203(object):
             if (touchmode == "multi"):
                 self.setBits(_MULTIPLE_TOUCH_CONFIG,b'\x00',b'\x80')
             if (sensitivity >= 0 and sensitivity <= 7): # check for valid entry
-                print("sensitivity: {}".format(sensitivity*16))
                 self.setBits(_SENSITIVITY_CONTROL,bytes([sensitivity*16]),b'\x70')
     
     def setBits(self, address, byte, mask):
@@ -58,19 +54,14 @@ class PiicoDev_CAP1203(object):
         temp_byte = old_byte
         int_byte = int.from_bytes(byte,"big")
         int_mask = int.from_bytes(mask,"big")
-        #print("Old byte    : {0:08b}".format(old_byte))
-        #print("Bits        : {0:08b}".format(int_byte))
-        #print("Mask        : {0:08b}".format(int_mask))
         for n in range(8): # Cycle through each bit
             bit_mask = (int_mask >> n) & 1
-            #print("Temp byte   : {0:08b}".format(temp_byte)) 
             if bit_mask == 1:
                 if ((int_byte >> n) & 1) == 1:
                     temp_byte = temp_byte | 1 << n
                 else:
                     temp_byte = temp_byte & ~(1 << n)
         new_byte = temp_byte
-        #print("New byte    : {0:08b}".format(new_byte))
         self.i2c.writeto_mem(self.addr, int.from_bytes(address,"big"), bytes([new_byte]))
     
     def getSensitivity(self):
@@ -91,7 +82,6 @@ class PiicoDev_CAP1203(object):
         general_status_value = self.i2c.readfrom_mem(self.addr, int.from_bytes(_GENERAL_STATUS,"big"), 1)
         mask =  0b00000001
         value = mask & int.from_bytes(general_status_value,'big')
-        #print bin(value)
         sensor_input_status = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_STATUS,"big"), 1)
         CS1 = 0b00000001 & int.from_bytes(sensor_input_status,'big')
         CS2 = 0b00000010 & int.from_bytes(sensor_input_status,'big')
@@ -111,7 +101,5 @@ class PiicoDev_CAP1203(object):
         DC1 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_1_DELTA_COUNT,"big"), 1)
         DC2 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_2_DELTA_COUNT,"big"), 1)
         DC3 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_3_DELTA_COUNT,"big"), 1)
-        print("DC {} ".format(int.from_bytes(DC1,"big")))
-        print("DC {} ".format(int.from_bytes(DC2,"big")))
-        print("DC {} ".format(int.from_bytes(DC3,"big")))
+        return DC1, DC2, DC3
         
