@@ -3,7 +3,6 @@
 # Original repo by SparkFun https://github.com/sparkfun/SparkFun_CAP1203_Arduino_Library
 
 from PiicoDev_Unified import *
-i2c = PiicoDev_Unified_I2C()
 
 # Declare I2C Address
 _CAP1203Address = b'\x28'
@@ -29,8 +28,9 @@ _PROD_ID_VALUE = b'\x6D'
 
 class PiicoDev_CAP1203(object):
     
-    def __init__(self, addr=int.from_bytes(_CAP1203Address,"big"), i2c_=i2c, touchmode = "single", sensitivity = 6):
-        self.i2c = i2c_
+    def __init__(self, bus=0, freq=None, sda=None, scl=None, addr=int.from_bytes(_CAP1203Address,"big"), touchmode = "single", sensitivity = 6):
+        i2c = PiicoDev_Unified_I2C(bus=bus, freq=freq, sda=sda, scl=scl)
+        self.i2c = i2c
         self.addr = addr
         #print(self.addr)
         

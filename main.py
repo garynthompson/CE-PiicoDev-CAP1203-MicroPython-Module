@@ -6,7 +6,7 @@ from PiicoDev_CAP1203 import PiicoDev_CAP1203
 from time import sleep
 
 touchSensor = PiicoDev_CAP1203(touchmode="multi",sensitivity=6) #touchmode="multi") #single/multi sensitivity (7 - 0), where 0 is most sensitive
-
+touchSensor2 = PiicoDev_CAP1203(bus=1, touchmode="multi",sensitivity=6)
 sleep(1)
 
 while True:
@@ -15,6 +15,13 @@ while True:
         print(str(buttons[0]) + " S1  " + str(buttons[1]) + " S2  " + str(buttons[2]) + " S3")
     except:
         print(".")
+        
+    buttons = touchSensor2.read()
+    try:
+        print(str(buttons[0]) + " S1  " + str(buttons[1]) + " S2  " + str(buttons[2]) + " S3")
+    except:
+        print(".")
     #touchSensor.readDeltaCounts()
+    print('------------------')
     
     sleep(1)
