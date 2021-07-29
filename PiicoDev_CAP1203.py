@@ -4,6 +4,8 @@
 
 from PiicoDev_Unified import *
 
+compat_str = '\nUnified PiicoDev library out of date.  Get the latest module: https://piico.dev/unified \n'
+
 # Declare I2C Address
 _CAP1203Address = b'\x28'
 
@@ -29,6 +31,13 @@ _PROD_ID_VALUE = b'\x6D'
 class PiicoDev_CAP1203(object):
     
     def __init__(self, bus=None, freq=None, sda=None, scl=None, addr=int.from_bytes(_CAP1203Address,"big"), touchmode = "single", sensitivity = 6):
+        try:
+            if compat_ind >= 1:
+                pass
+            else:
+                print(compat_str)
+        except:
+            print(compat_str)
         self.i2c = create_unified_i2c(bus=bus, freq=freq, sda=sda, scl=scl)
         self.addr = addr
         
@@ -78,8 +87,12 @@ class PiicoDev_CAP1203(object):
         CS1return = 0
         CS2return = 0
         CS3return = 0
-        self.clearInterrupt()
-        general_status_value = self.i2c.readfrom_mem(self.addr, int.from_bytes(_GENERAL_STATUS,"big"), 1)
+        try:
+            self.clearInterrupt()
+            general_status_value = self.i2c.readfrom_mem(self.addr, int.from_bytes(_GENERAL_STATUS,"big"), 1)
+        except:
+            print(i2c_err_str.format(self.addr))
+            return float('NaN'), float('NaN'), float('NaN')    
         mask =  0b00000001
         value = mask & int.from_bytes(general_status_value,'big')
         sensor_input_status = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_STATUS,"big"), 1)
@@ -98,8 +111,12 @@ class PiicoDev_CAP1203(object):
         DC1return = 0
         DC2return = 0
         DC3return = 0
-        DC1 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_1_DELTA_COUNT,"big"), 1)
-        DC2 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_2_DELTA_COUNT,"big"), 1)
-        DC3 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_3_DELTA_COUNT,"big"), 1)
+        try:
+            DC1 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_1_DELTA_COUNT,"big"), 1)
+            DC2 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_2_DELTA_COUNT,"big"), 1)
+            DC3 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_3_DELTA_COUNT,"big"), 1)
+        except:
+            print(i2c_err_str.format(self.addr))
+            return float('NaN'), float('NaN'), float('NaN') 
         return DC1, DC2, DC3
         
