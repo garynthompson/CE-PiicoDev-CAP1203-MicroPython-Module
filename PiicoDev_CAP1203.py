@@ -7,7 +7,7 @@ from PiicoDev_Unified import *
 compat_str = '\nUnified PiicoDev library out of date.  Get the latest module: https://piico.dev/unified \n'
 
 # Declare I2C Address
-_CAP1203Address = b'\x28'
+_CAP1203Address = 0x28
 
 # Registers as defined in Table 5-1 from datasheet (pg 20-21)
 _MAIN_CONTROL = b'\x00'
@@ -30,7 +30,7 @@ _PROD_ID_VALUE = b'\x6D'
 
 class PiicoDev_CAP1203(object):
     
-    def __init__(self, bus=None, freq=None, sda=None, scl=None, addr=int.from_bytes(_CAP1203Address,"big"), touchmode = "single", sensitivity = 6):
+    def __init__(self, bus=None, freq=None, sda=None, scl=None, addr=_CAP1203Address, touchmode = "multi", sensitivity = 3):
         try:
             if compat_ind >= 1:
                 pass
@@ -42,21 +42,21 @@ class PiicoDev_CAP1203(object):
         self.addr = addr
         
         for i in range(0,1):
-            sleep_ms(1000)
             try:
                 product_ID_value = self.i2c.readfrom_mem(self.addr, int.from_bytes(_PRODUCT_ID,"big"), 1) 
                 # to initialise the device
-                if (product_ID_value == _PROD_ID_VALUE):
-                    print("product ID match")
-                    print("connected...")
+                if (product_ID_value != _PROD_ID_VALUE):
+                    print("Device ID does not match PiicoDev CAP1203")
             except:
                 print("connection failed")
+                sleep_ms(1000)
             if (touchmode == "single"):
                 self.setBits(_MULTIPLE_TOUCH_CONFIG,b'\x80',b'\x80')
             if (touchmode == "multi"):
                 self.setBits(_MULTIPLE_TOUCH_CONFIG,b'\x00',b'\x80')
             if (sensitivity >= 0 and sensitivity <= 7): # check for valid entry
                 self.setBits(_SENSITIVITY_CONTROL,bytes([sensitivity*16]),b'\x70')
+            return
     
     def setBits(self, address, byte, mask):
         old_byte = int.from_bytes(self.i2c.readfrom_mem(self.addr, int.from_bytes(address,"big"), 1),"big")
@@ -84,6 +84,9 @@ class PiicoDev_CAP1203(object):
         main_control_value = self.i2c.readfrom_mem(self.addr, int.from_bytes(_MAIN_CONTROL,"big"), 1)
     
     def read(self):
+        """
+        Get the status of each touch pad and return a dict. Dict keys match hardware pad labels
+        """
         CS1return = 0
         CS2return = 0
         CS3return = 0
@@ -96,21 +99,23 @@ class PiicoDev_CAP1203(object):
         mask =  0b00000001
         value = mask & int.from_bytes(general_status_value,'big')
         sensor_input_status = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_STATUS,"big"), 1)
-        CS1 = 0b00000001 & int.from_bytes(sensor_input_status,'big')
-        CS2 = 0b00000010 & int.from_bytes(sensor_input_status,'big')
-        CS3 = 0b00000100 & int.from_bytes(sensor_input_status,'big')
+        sts = int.from_bytes(sensor_input_status,'big')
+        CS1 = 0b00000001 & sts
+        CS2 = 0b00000010 & sts
+        CS3 = 0b00000100 & sts
         if (CS1 > 0):
             CS1return = 1
         if (CS2 > 0):
             CS2return = 1
         if (CS3 > 0):
             CS3return = 1
-        return CS1return, CS2return, CS3return
+        return dict([(1,CS1return),(2,CS2return),(3,CS3return)]) # dict key matches hardware label
     
     def readDeltaCounts(self):
-        DC1return = 0
-        DC2return = 0
-        DC3return = 0
+        """
+        Get the number of touch events since last read
+        """
+        DC1return = 0; DC2return = 0; DC3return = 0
         try:
             DC1 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_1_DELTA_COUNT,"big"), 1)
             DC2 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_2_DELTA_COUNT,"big"), 1)
@@ -118,5 +123,5 @@ class PiicoDev_CAP1203(object):
         except:
             print(i2c_err_str.format(self.addr))
             return float('NaN'), float('NaN'), float('NaN') 
-        return DC1, DC2, DC3
+        return dict([(1,DC1),(2,DC2),(3,DC3)]) # dict key matches hardware label
         
