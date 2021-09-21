@@ -35,7 +35,7 @@ bus | int | 0,1 | Raspberry Pi Pico: 0, Raspberry Pi: 1 | I2C Bus.  Ignored on M
 freq | int | 100-1000000 | Device dependent | I2C Bus frequency (Hz).  Ignored on Raspberry Pi
 sda | Pin | Device Dependent | Device Dependent | I2C SDA Pin. Implemented on Raspberry Pi Pico only
 scl | Pin | Device Dependent | Device Dependent | I2C SCL Pin. Implemented on Raspberry Pi Pico only
-addr | int | 0x10, 0x48 | 0x28 | This address cannot be changed
+addr | int | 0x28 | 0x28 | This address cannot be changed
 touchmode | string | 'single' / 'multi' | 'multi' | 'single': allow only one touch pad to operate at one time. 'multi': allow multiple touches at the same time
 sensitivity | int | 0 - 7 | 0: Highest Sensitivity, 7: Minimum Sensitivity | Selects the sensitivity of the touch sensor.
 
