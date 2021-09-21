@@ -47,16 +47,15 @@ class PiicoDev_CAP1203(object):
                 # to initialise the device
                 if (product_ID_value != _PROD_ID_VALUE):
                     print("Device ID does not match PiicoDev CAP1203")
+                if (touchmode == "single"):
+                    self.setBits(_MULTIPLE_TOUCH_CONFIG,b'\x80',b'\x80')
+                if (touchmode == "multi"):
+                    self.setBits(_MULTIPLE_TOUCH_CONFIG,b'\x00',b'\x80')
+                if (sensitivity >= 0 and sensitivity <= 7): # check for valid entry
+                    self.setBits(_SENSITIVITY_CONTROL,bytes([sensitivity*16]),b'\x70')
             except:
                 print("connection failed")
                 sleep_ms(1000)
-            if (touchmode == "single"):
-                self.setBits(_MULTIPLE_TOUCH_CONFIG,b'\x80',b'\x80')
-            if (touchmode == "multi"):
-                self.setBits(_MULTIPLE_TOUCH_CONFIG,b'\x00',b'\x80')
-            if (sensitivity >= 0 and sensitivity <= 7): # check for valid entry
-                self.setBits(_SENSITIVITY_CONTROL,bytes([sensitivity*16]),b'\x70')
-            return
     
     def setBits(self, address, byte, mask):
         old_byte = int.from_bytes(self.i2c.readfrom_mem(self.addr, int.from_bytes(address,"big"), 1),"big")
@@ -95,7 +94,7 @@ class PiicoDev_CAP1203(object):
             general_status_value = self.i2c.readfrom_mem(self.addr, int.from_bytes(_GENERAL_STATUS,"big"), 1)
         except:
             print(i2c_err_str.format(self.addr))
-            return float('NaN'), float('NaN'), float('NaN')    
+            return dict([(1,float('NaN')),(2,float('NaN')),(3,float('NaN'))])     
         mask =  0b00000001
         value = mask & int.from_bytes(general_status_value,'big')
         sensor_input_status = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_STATUS,"big"), 1)
@@ -113,7 +112,7 @@ class PiicoDev_CAP1203(object):
     
     def readDeltaCounts(self):
         """
-        Get the number of touch events since last read
+        Get the raw sensor reading
         """
         DC1return = 0; DC2return = 0; DC3return = 0
         try:
@@ -122,6 +121,6 @@ class PiicoDev_CAP1203(object):
             DC3 = self.i2c.readfrom_mem(self.addr, int.from_bytes(_SENSOR_INPUT_3_DELTA_COUNT,"big"), 1)
         except:
             print(i2c_err_str.format(self.addr))
-            return float('NaN'), float('NaN'), float('NaN') 
+            return dict([(1,float('NaN')),(2,float('NaN')),(3,float('NaN'))])
         return dict([(1,DC1),(2,DC2),(3,DC3)]) # dict key matches hardware label
         
