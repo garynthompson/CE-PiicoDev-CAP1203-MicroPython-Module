@@ -11,7 +11,7 @@ See the [Quickstart Guide](https://piico.dev/pX)
 # Usage
 ## Example
 [main.py](https://github.com/CoreElectronics/CE-PiicoDev-CAP1203-MicroPython-Module/blob/main/main.py) is a simple example to get started.
-```
+```python
 # PiicoDev Capacitive Touch Sensor CAP1203 demo code
 # Read the touch sensor buttons and print the result
 
