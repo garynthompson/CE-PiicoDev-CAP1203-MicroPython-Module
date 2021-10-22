@@ -1,12 +1,10 @@
-_E='multi'
-_D=b'\x00'
 _C=None
 _B='NaN'
 _A='big'
 from PiicoDev_Unified import *
 compat_str='\nUnified PiicoDev library out of date.  Get the latest module: https://piico.dev/unified \n'
 _CAP1203Address=40
-_MAIN_CONTROL=_D
+_MAIN_CONTROL=b'\x00'
 _GENERAL_STATUS=b'\x02'
 _SENSOR_INPUT_STATUS=b'\x03'
 _SENSOR_INPUT_1_DELTA_COUNT=b'\x10'
@@ -22,7 +20,7 @@ _MULTIPLE_TOUCH_PATTERN=b'-'
 _PRODUCT_ID=b'\xfd'
 _PROD_ID_VALUE=b'm'
 class PiicoDev_CAP1203:
-	def __init__(self,bus=_C,freq=_C,sda=_C,scl=_C,addr=_CAP1203Address,touchmode=_E,sensitivity=3):
+	def __init__(self,bus=_C,freq=_C,sda=_C,scl=_C,addr=_CAP1203Address,touchmode='multi',sensitivity=3):
 		A=b'\x80'
 		try:
 			if compat_ind>=1:0
@@ -31,10 +29,8 @@ class PiicoDev_CAP1203:
 		self.i2c=create_unified_i2c(bus=bus,freq=freq,sda=sda,scl=scl);self.addr=addr
 		for i in range(0,1):
 			try:
-				product_ID_value=self.i2c.readfrom_mem(self.addr,int.from_bytes(_PRODUCT_ID,_A),1)
-				if product_ID_value!=_PROD_ID_VALUE:print('Device ID does not match PiicoDev CAP1203')
 				if touchmode=='single':self.setBits(_MULTIPLE_TOUCH_CONFIG,A,A)
-				if touchmode==_E:self.setBits(_MULTIPLE_TOUCH_CONFIG,_D,A)
+				if touchmode=='multi':self.setBits(_MULTIPLE_TOUCH_CONFIG,b'\x00',A)
 				if sensitivity>=0 and sensitivity<=7:self.setBits(_SENSITIVITY_CONTROL,bytes([sensitivity*16]),b'p')
 			except:print('connection failed');sleep_ms(1000)
 	def setBits(self,address,byte,mask):
