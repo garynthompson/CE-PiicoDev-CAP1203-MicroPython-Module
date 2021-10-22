@@ -43,10 +43,10 @@ class PiicoDev_CAP1203(object):
         
         for i in range(0,1):
             try:
-                product_ID_value = self.i2c.readfrom_mem(self.addr, int.from_bytes(_PRODUCT_ID,"big"), 1) 
-                # to initialise the device
-                if (product_ID_value != _PROD_ID_VALUE):
-                    print("Device ID does not match PiicoDev CAP1203")
+#                 product_ID_value = self.i2c.readfrom_mem(self.addr, int.from_bytes(_PRODUCT_ID,"big"), 1) 
+#                 # to initialise the device
+#                 if (product_ID_value != _PROD_ID_VALUE):
+#                     print("Device ID does not match PiicoDev CAP1203")
                 if (touchmode == "single"):
                     self.setBits(_MULTIPLE_TOUCH_CONFIG,b'\x80',b'\x80')
                 if (touchmode == "multi"):
