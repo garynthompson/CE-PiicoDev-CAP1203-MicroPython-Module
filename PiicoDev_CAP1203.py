@@ -39,6 +39,12 @@ _PROD_ID_VALUE = b"\x6D"
 
 # noinspection PyPep8Naming,SpellCheckingInspection
 class PiicoDev_CAP1203(object):
+    """
+    The PiicoDev board is based on the Microchip CAP1203.
+
+    https://ww1.microchip.com/downloads/en/DeviceDoc/00001572B.pdf
+    """
+
     def __init__(
         self,
         bus=None,
@@ -66,7 +72,10 @@ class PiicoDev_CAP1203(object):
                 print("connection failed")
                 sleep_ms(1000)
 
-    def readID(self):
+    def readID(self) -> bytes:
+        """
+        Read the product ID value
+        """
         # noinspection PyProtectedMember
         product_ID_value = self.i2c.readfrom_mem(
             self.addr, int.from_bytes(_PRODUCT_ID, "big"), 1
@@ -75,10 +84,16 @@ class PiicoDev_CAP1203(object):
 
     # noinspection PyMethodMayBeStatic
     def readFirmware(self):
+        """
+        Read the firmware version value
+        """
         v = self.i2c.readfrom_mem(self.addr, _REVISION_ADDR, 1)
         return v[0]
 
     def setBits(self, address, byte, mask):
+        """
+        This is used on __init__ only.  Intended only for internal use.
+        """
         old_byte = int.from_bytes(
             self.i2c.readfrom_mem(self.addr, int.from_bytes(address, "big"), 1), "big"
         )
@@ -98,16 +113,36 @@ class PiicoDev_CAP1203(object):
         )
 
     def getSensitivity(self):
-        sensitivity_control = self.i2c.readfrom_mem(
+        """
+        Retrives the current sensitivity value.  See setSensitivity for what this value means.
+        """
+        return self.i2c.readfrom_mem(
             self.addr, int.from_bytes(_SENSITIVITY_CONTROL, "big"), 1
         )
 
     def setSensitivity(self):
+        """
+        This currently resets the sensitifity byte.  The sensitivity control byte is broken
+        into 8 bits as follows:
+
+        * bit 0 to bit 3:  This is essentially a scaling factor which is 2^scale and is clamped at
+                           a scale of 256x. A large number is a large range and low resolution of
+                           data.  A smaller number reduces the range but increases the resolution.
+        * bit 4 to bit 6:  These three bits is a sense value.  This is also a scale for the range
+                           between each count (delta count).  000b being the most sensitive (128x)
+                           and 111b is the least sensitive (1x).
+        * bit 7:  This is ignored.
+        """
         self.i2c.writeto_mem(
             self.addr, int.from_bytes(_SENSITIVITY_CONTROL, "big"), 0x6F
         )
 
     def clearInterrupt(self):
+        """
+        The CAP1203 raises an internal interrupt on signal detection.  The interrupt is set
+        if multiple touch pattern recognition is enabled (not implemented here).  At a guess, this
+        can be used to have a latch so that regular polling is not needed.
+        """
         self.i2c.writeto_mem(
             self.addr, int.from_bytes(_MAIN_CONTROL, "big"), bytes([0x00])
         )
@@ -153,9 +188,6 @@ class PiicoDev_CAP1203(object):
         """
         Get the raw sensor reading
         """
-        DC1return = 0
-        DC2return = 0
-        DC3return = 0
         try:
             DC1 = self.i2c.readfrom_mem(
                 self.addr, int.from_bytes(_SENSOR_INPUT_1_DELTA_COUNT, "big"), 1
