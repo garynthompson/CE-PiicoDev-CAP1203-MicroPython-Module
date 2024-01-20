@@ -31,6 +31,7 @@ _MULTIPLE_TOUCH_CONFIG = b"\x2A"
 _MULTIPLE_TOUCH_PATTERN_CONFIG = b"\x2B"
 _MULTIPLE_TOUCH_PATTERN = b"\x2D"
 _PRODUCT_ID = b"\xFD"
+_REVISION_ADDR = 0xFF
 
 # Product ID - always the same (pg. 22)
 _PROD_ID_VALUE = b"\x6D"
@@ -53,10 +54,6 @@ class PiicoDev_CAP1203(object):
 
         for i in range(0, 1):
             try:
-                #                 product_ID_value = self.i2c.readfrom_mem(self.addr, int.from_bytes(_PRODUCT_ID,"big"), 1)
-                #                 # to initialise the device
-                #                 if (product_ID_value != _PROD_ID_VALUE):
-                #                     print("Device ID does not match PiicoDev CAP1203")
                 if touchmode == "single":
                     self.setBits(_MULTIPLE_TOUCH_CONFIG, b"\x80", b"\x80")
                 if touchmode == "multi":
@@ -68,6 +65,18 @@ class PiicoDev_CAP1203(object):
             except:
                 print("connection failed")
                 sleep_ms(1000)
+
+    def readID(self):
+        # noinspection PyProtectedMember
+        product_ID_value = self.i2c.readfrom_mem(
+            self.addr, int.from_bytes(_PRODUCT_ID, "big"), 1
+        )[0]
+        return product_ID_value
+
+    # noinspection PyMethodMayBeStatic
+    def readFirmware(self):
+        v = self.i2c.readfrom_mem(self.addr, _REVISION_ADDR, 1)
+        return v[0]
 
     def setBits(self, address, byte, mask):
         old_byte = int.from_bytes(
