@@ -4,7 +4,14 @@
 
 from PiicoDev_Unified import *
 
-compat_str = "\nUnified PiicoDev library out of date.  Get the latest module: https://piico.dev/unified \n"
+if compat_ind >= 1:
+    pass
+else:
+    raise ImportError(
+        "\nUnified PiicoDev library out of date.  "
+        "Get the latest module: https://piico.dev/unified \n"
+    )
+
 
 # Declare I2C Address
 _CAP1203Address = 0x28
@@ -29,6 +36,7 @@ _PRODUCT_ID = b"\xFD"
 _PROD_ID_VALUE = b"\x6D"
 
 
+# noinspection PyPep8Naming,SpellCheckingInspection
 class PiicoDev_CAP1203(object):
     def __init__(
         self,
@@ -40,13 +48,6 @@ class PiicoDev_CAP1203(object):
         touchmode="multi",
         sensitivity=3,
     ):
-        try:
-            if compat_ind >= 1:
-                pass
-            else:
-                print(compat_str)
-        except:
-            print(compat_str)
         self.i2c = create_unified_i2c(bus=bus, freq=freq, sda=sda, scl=scl)
         self.addr = addr
 
